@@ -6,18 +6,18 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars } from '@fortawesome/free-solid-svg-icons';
 
 
-const Header = ({toggleBar}) => {
+const Header = ({ toggleBar }) => {
     return (
         <>
-            <header className="surface-0">
-                <nav>
+            <header>
+                <nav className='shadow-3'>
                     <div className='flex align-items-center py-2 ml-5 justify-content-between w-11'>
                         <div className=' flex align-items-center gap-7'>
                             <span className='text-4xl font-bold '>Astro</span>
                             <button
-                            onClick={toggleBar}
+                                onClick={toggleBar}
 
-                                className='bg-blue-600 text-white p-2 border-round-lg'><FontAwesomeIcon icon={faBars} className="text-2xl" /></button>
+                                className='bg-blue-600 text-white p-2 border-round-lg border-none'><FontAwesomeIcon icon={faBars} className="text-2xl" /></button>
                         </div>
 
                         <div className='flex gap-3'>
@@ -29,7 +29,7 @@ const Header = ({toggleBar}) => {
                             <Link className='font-semibold no-underline text-900 hidden lg:flex'>Contact</Link>
                         </div>
                         <div>
-                            <Button label="Get Started" className='font-bold' />
+                            <Button label="Log out" className='font-bold ' />
                         </div>
                     </div>
 

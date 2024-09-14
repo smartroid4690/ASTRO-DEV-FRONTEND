@@ -11,7 +11,7 @@ const Login = () => {
     const redirected = async (data) => {
         try {
             const response = await axios.post('https://jsonplaceholder.typicode.com/posts', data)
-            navigated("/")
+            navigated("/default")
         } catch (error) {
 
         }

@@ -1,46 +1,50 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faGraduationCap,
-  faGear,
-  faNewspaper,
-  faBook,
-  faTable,
-  faCalendarDay,
-  faCommentDollar,
-  faClipboardList,
-  faChalkboardUser,
-  faHollyBerry,
-  faBuilding,
-  faBookOpenReader,
-  faTableCellsLarge,
-  faFileInvoiceDollar,
-  faSignal
-} from "@fortawesome/free-solid-svg-icons";
+import Dash from '../components/navigation/Dash';
+import Profile from '../components/navigation/Profile';
+import Status from '../components/navigation/Status';
+import NewForm from '../components/navigation/NewForm';
+import About from '../components/navigation/About';
+import Order from '../components/navigation/Order';
+import Tests from '../components/navigation/Tests';
+import Contact from '../components/navigation/Contact';
+import QuoteTable from '../components/navigation/QuoteTable';
 
 const SideNav = () => {
 
   return (
     <>
       <div>
-        <ul className='gap-6 flex flex-column mt-4'>
-          <span className='flex gap-2 align-items-center'><FontAwesomeIcon icon={faTableCellsLarge} />
-            <Link to='/' className='outline-none no-underline text-600'>Dashboard</Link>
-          </span>
-          <span className='flex gap-2 align-items-center'>
-            <FontAwesomeIcon icon={faBookOpenReader} />
-            <Link to='/quote' className='outline-none no-underline text-600'>QuoteForm</Link>
-          </span>
-          <span className='flex gap-2 align-items-center'>
-            <FontAwesomeIcon icon={faFileInvoiceDollar} />
-            <Link className='outline-none no-underline text-600'>Profile</Link>
-          </span>
-          <span className='flex gap-2 align-items-center'>
-            <FontAwesomeIcon icon={faSignal} />
-            <Link className='outline-none no-underline text-600'>Status</Link>
-          </span>
-
+        <ul className='gap-6 flex flex-column mt-4 list-none'>
+          <li>
+            <Dash />
+          </li>
+          <li>
+            <Profile />
+          </li>
+          <li>
+            <Status />
+          </li>
+          <li>
+            <NewForm />
+          </li>
+          <li>
+            <About />
+          </li>
+          <li>
+            <QuoteTable />
+          </li>
+          <li>
+            <Tests />
+          </li>
+          <li>
+            <Contact />
+          </li>
+          <li>
+            <About />
+          </li>
+          <li>
+            <Profile />
+          </li>
         </ul>
       </div>
     </>
