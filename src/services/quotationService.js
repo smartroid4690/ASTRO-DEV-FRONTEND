@@ -36,5 +36,6 @@ export const getTestConditionsByTestId = async (testId) => {
 
 export const getUnitDimensions = async () => {
 	const response = await axios.get(`${API_BASE_URL}/u/unitdimension/`);
+	console.log(response.data, "unit dimension");
 	return response.data;
 };

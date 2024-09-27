@@ -36,8 +36,7 @@ const Form = () => {
 		}
 	}, []);
 
-	const { control, handleSubmit, setValue, getValues, watch, reset } =
-		useForm();
+	const { control, handleSubmit, setValue, watch, reset } = useForm();
 
 	const { fields, append, remove } = useFieldArray({
 		control,
@@ -61,32 +60,6 @@ const Form = () => {
 			localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
 		}
 	}, [formData]);
-
-	// const { control, handleSubmit, setValue, getValues, watch } = useForm({
-	// 	defaultValues: loadedFormData || {
-	// 		requestor: 1,
-	// 		base_metal_alloy: "",
-	// 		alloy: "",
-	// 		details: [],
-	// 	},
-	// });
-
-	// const { control, handleSubmit, getValues, watch, setValue } = useForm({
-	// 	defaultValues: {
-	// 		requestor: 1,
-	// 		base_metal_alloy: "",
-	// 		alloy: "",
-	// 		details: [],
-	// 	},
-	// });
-	// const formData = watch();
-
-	// useEffect(() => {
-	// 	console.log(formData);
-	// 	if (loadedFormData) {
-	// 		localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
-	// 	}
-	// }, [formData]);
 
 	// API CALLS
 	const { data: baseAlloys = [], isLoading: isBaseAlloysLoading } = useQuery({
