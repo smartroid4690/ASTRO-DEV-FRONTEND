@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
+import { ProgressSpinner } from "primereact/progressspinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
@@ -19,6 +20,7 @@ const Form = () => {
 	const [getDetail, setGetDetail] = useState([]);
 	const [selectedBaseAlloy, setSelectedBaseAlloy] = useState(null);
 	const [loadedFormData, setLoadedFormData] = useState(null);
+	const isFirstRender = useRef(true);
 
 	useEffect(() => {
 		const savedFormData = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -34,14 +36,40 @@ const Form = () => {
 		}
 	}, []);
 
-	const { control, handleSubmit, setValue, getValues, watch } = useForm({
-		defaultValues: loadedFormData || {
-			requestor: 1,
-			base_metal_alloy: "",
-			alloy: "",
-			details: [],
-		},
+	const { control, handleSubmit, setValue, getValues, watch, reset } =
+		useForm();
+
+	const { fields, append, remove } = useFieldArray({
+		control,
+		name: "details",
 	});
+
+	useEffect(() => {
+		if (loadedFormData) {
+			reset(loadedFormData);
+		}
+	}, [loadedFormData, reset]);
+
+	const formData = watch();
+
+	useEffect(() => {
+		if (isFirstRender.current) {
+			isFirstRender.current = false;
+			return;
+		}
+		if (formData && Object.keys(formData).length > 0) {
+			localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
+		}
+	}, [formData]);
+
+	// const { control, handleSubmit, setValue, getValues, watch } = useForm({
+	// 	defaultValues: loadedFormData || {
+	// 		requestor: 1,
+	// 		base_metal_alloy: "",
+	// 		alloy: "",
+	// 		details: [],
+	// 	},
+	// });
 
 	// const { control, handleSubmit, getValues, watch, setValue } = useForm({
 	// 	defaultValues: {
@@ -51,20 +79,14 @@ const Form = () => {
 	// 		details: [],
 	// 	},
 	// });
+	// const formData = watch();
 
-	const { fields, append, remove } = useFieldArray({
-		control,
-		name: "details",
-	});
-
-	const formData = watch();
-
-	useEffect(() => {
-		console.log(formData);
-		if (loadedFormData) {
-			localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
-		}
-	}, [formData]);
+	// useEffect(() => {
+	// 	console.log(formData);
+	// 	if (loadedFormData) {
+	// 		localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
+	// 	}
+	// }, [formData]);
 
 	// API CALLS
 	const { data: baseAlloys = [], isLoading: isBaseAlloysLoading } = useQuery({
@@ -121,6 +143,14 @@ const Form = () => {
 		field.onChange(e.value.name);
 		setSelectedBaseAlloy(e.value);
 	};
+
+	if (!loadedFormData) {
+		return (
+			<div className="h-30rem w-full flex justify-content-center align-items-center">
+				<ProgressSpinner />
+			</div>
+		);
+	}
 
 	return (
 		<>
@@ -225,6 +255,268 @@ const Form = () => {
 };
 
 export default Form;
+
+// ^ NEW START BEFORE LOCALSTORAGE
+
+// import React, { useState, useEffect, useRef } from "react";
+// import { useForm, Controller, useFieldArray } from "react-hook-form";
+// import { Dropdown } from "primereact/dropdown";
+// import { Button } from "primereact/button";
+// import { ProgressSpinner } from "primereact/progressspinner";
+// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+// import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
+// import axios from "axios";
+// import Card from "../components/Cart";
+// import {
+// 	getBaseAlloys,
+// 	getAlloysByBaseAlloyId,
+// } from "../services/quotationService";
+// import { useQuery } from "@tanstack/react-query";
+// import TestDetails from "./TestDetails";
+
+// const LOCAL_STORAGE_KEY = "formData";
+
+// const Form = () => {
+// 	const [getDetail, setGetDetail] = useState([]);
+// 	const [selectedBaseAlloy, setSelectedBaseAlloy] = useState(null);
+// 	const [loadedFormData, setLoadedFormData] = useState(null);
+// 	const isFirstRender = useRef(true);
+
+// 	useEffect(() => {
+// 		const savedFormData = localStorage.getItem(LOCAL_STORAGE_KEY);
+// 		if (savedFormData) {
+// 			setLoadedFormData(JSON.parse(savedFormData));
+// 		} else {
+// 			setLoadedFormData({
+// 				requestor: 1,
+// 				base_metal_alloy: "",
+// 				alloy: "",
+// 				details: [],
+// 			});
+// 		}
+// 	}, []);
+
+// 	const { control, handleSubmit, setValue, getValues, watch, reset } =
+// 		useForm();
+
+// 	const { fields, append, remove } = useFieldArray({
+// 		control,
+// 		name: "details",
+// 	});
+
+// 	useEffect(() => {
+// 		if (loadedFormData) {
+// 			reset(loadedFormData);
+// 		}
+// 	}, [loadedFormData, reset]);
+
+// 	const formData = watch();
+
+// 	useEffect(() => {
+// 		if (isFirstRender.current) {
+// 			isFirstRender.current = false;
+// 			return;
+// 		}
+// 		if (formData && Object.keys(formData).length > 0) {
+// 			localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
+// 		}
+// 	}, [formData]);
+
+// 	// const { control, handleSubmit, setValue, getValues, watch } = useForm({
+// 	// 	defaultValues: loadedFormData || {
+// 	// 		requestor: 1,
+// 	// 		base_metal_alloy: "",
+// 	// 		alloy: "",
+// 	// 		details: [],
+// 	// 	},
+// 	// });
+
+// 	// const { control, handleSubmit, getValues, watch, setValue } = useForm({
+// 	// 	defaultValues: {
+// 	// 		requestor: 1,
+// 	// 		base_metal_alloy: "",
+// 	// 		alloy: "",
+// 	// 		details: [],
+// 	// 	},
+// 	// });
+// 	// const formData = watch();
+
+// 	// useEffect(() => {
+// 	// 	console.log(formData);
+// 	// 	if (loadedFormData) {
+// 	// 		localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
+// 	// 	}
+// 	// }, [formData]);
+
+// 	// API CALLS
+// 	const { data: baseAlloys = [], isLoading: isBaseAlloysLoading } = useQuery({
+// 		queryKey: ["baseAlloys"],
+// 		queryFn: getBaseAlloys,
+// 	});
+
+// 	const { data: alloys = [], isLoading: isAlloysLoading } = useQuery({
+// 		queryKey: ["alloys", selectedBaseAlloy?.id],
+// 		queryFn: () => getAlloysByBaseAlloyId(selectedBaseAlloy.id),
+// 		enabled: !!selectedBaseAlloy,
+// 	});
+
+// 	const onSubmit = async (data) => {
+// 		console.log(data);
+// 		try {
+// 			const response = await axios.post(
+// 				"https://farheenkhan1995.pythonanywhere.com/r/quotation/",
+// 				data
+// 			);
+// 			const details = response.data.data || [response.data];
+// 			setGetDetail(details);
+// 		} catch (error) {
+// 			console.log("Error occurred", error.message);
+// 		}
+// 	};
+
+// 	const addTest = (e) => {
+// 		e.preventDefault();
+// 		append({
+// 			test: "",
+// 			test_objects: [
+// 				{
+// 					test_object: "",
+// 					test_object_quantity: "",
+// 					test_condition: "",
+// 					test_condition_value: "",
+// 					unit_dimension: "",
+// 					object_dimension: [{ unit: "", dimension: "", value: "" }],
+// 					test_parameters: [
+// 						{
+// 							test_parameter: "",
+// 							test_parameter_value: "",
+// 							unit_dimension: "",
+// 						},
+// 					],
+// 				},
+// 			],
+// 		});
+// 	};
+
+// 	const handleBaseAlloyChange = (e, field) => {
+// 		console.log(fields);
+// 		field.onChange(e.value.name);
+// 		setSelectedBaseAlloy(e.value);
+// 	};
+
+// 	if (!loadedFormData) {
+// 		return (
+// 			<div className="h-30rem w-full flex justify-content-center align-items-center">
+// 				<ProgressSpinner />
+// 			</div>
+// 		);
+// 	}
+
+// 	return (
+// 		<>
+// 			<div className="flex justify-content-between w-11 mx-auto gap-5">
+// 				<div className="flex flex-column w-12 mx-auto">
+// 					<div className="pt-4 w-11 mx-auto">
+// 						<h1 className="m-0 p-0">GET YOUR QUOTATION</h1>
+// 					</div>
+// 					<div
+// 						className="overflow-y-scroll bg-norepeat p-3"
+// 						style={{ scrollbarWidth: "none" }}
+// 					>
+// 						<div
+// 							className="main shadow-5 p-3 border-round-3xl surface-0"
+// 							style={{ contain: "content" }}
+// 						>
+// 							<form onSubmit={handleSubmit(onSubmit)}>
+// 								<div className="flex align-items-center justify-content-between mb-4">
+// 									<label className="font-semibold">
+// 										Select Your Base Alloy
+// 									</label>
+// 									<div className="flex gap-3 align-items-center">
+// 										<Controller
+// 											name="base_metal_alloy"
+// 											control={control}
+// 											render={({ field }) => (
+// 												<Dropdown
+// 													{...field}
+// 													options={baseAlloys.map((alloy) => ({
+// 														label: alloy.name,
+// 														value: alloy,
+// 													}))}
+// 													loading={isBaseAlloysLoading}
+// 													editable
+// 													onChange={(e) => handleBaseAlloyChange(e, field)}
+// 													placeholder="Select Base Alloy"
+// 													className="w-full md:w-14rem"
+// 												/>
+// 											)}
+// 										/>
+// 										<FontAwesomeIcon
+// 											className="text-gray-700"
+// 											icon={faCircleExclamation}
+// 										/>
+// 									</div>
+// 								</div>
+
+// 								<div className="flex align-items-center justify-content-between mb-2">
+// 									<label className="font-semibold">Select Your Alloy</label>
+// 									<div className="flex gap-3 align-items-center">
+// 										<Controller
+// 											name="alloy"
+// 											control={control}
+// 											render={({ field }) => (
+// 												<Dropdown
+// 													{...field}
+// 													loading={isAlloysLoading}
+// 													disabled={alloys.length === 0 ? true : false}
+// 													options={alloys.map((alloy) => ({
+// 														label: alloy.name,
+// 														value: alloy.name,
+// 													}))}
+// 													placeholder="Select Alloy"
+// 													className="w-full md:w-14rem"
+// 												/>
+// 											)}
+// 										/>
+// 										<FontAwesomeIcon
+// 											className="text-gray-700"
+// 											icon={faCircleExclamation}
+// 										/>
+// 									</div>
+// 								</div>
+
+// 								<div className="py-2">
+// 									<hr />
+// 								</div>
+
+// 								{fields.map((item, index) => (
+// 									<TestDetails
+// 										key={item.id}
+// 										control={control}
+// 										index={index}
+// 										remove={() => remove(index)}
+// 										setValue={setValue}
+// 									/>
+// 								))}
+
+// 								<div className="flex justify-content-center">
+// 									<Button className="mt-4 w-3" type="submit" label="Submit" />
+// 								</div>
+// 							</form>
+// 						</div>
+// 					</div>
+// 				</div>
+// 				<div className="mt-8 hidden lg:block">
+// 					<Card getDetail={getDetail} onClick={addTest} />
+// 				</div>
+// 			</div>
+// 		</>
+// 	);
+// };
+
+// export default Form;
+
+// ^ NEW END BEFORE LOCALSTORAGE
 
 // import React, { useEffect, useState } from "react";
 // import { useForm, Controller } from "react-hook-form";
