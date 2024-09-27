@@ -3,36 +3,38 @@ import axios from "axios";
 const API_BASE_URL = "https://3gc5tgdm-8000.inc1.devtunnels.ms/";
 
 export const getBaseAlloys = async () => {
-	try {
-		const response = await axios.get(`${API_BASE_URL}/d/alloys/base_alloy/`);
-		return response.data;
-	} catch (error) {
-		console.error("Error fetching base alloys", error.message);
-		return [];
-	}
+	const response = await axios.get(`${API_BASE_URL}/d/alloys/base_alloy/`);
+	return response.data;
 };
 
 export const getAlloysByBaseAlloyId = async (baseAlloyId) => {
-	try {
-		const response = await axios.get(
-			`${API_BASE_URL}/d/alloys/${baseAlloyId}/sub_alloy`
-		);
-		return response.data;
-	} catch (error) {
-		console.error(
-			"Error fetching alloys based on base alloy ID",
-			error.message
-		);
-		return [];
-	}
+	const response = await axios.get(
+		`${API_BASE_URL}/d/alloys/${baseAlloyId}/sub_alloy`
+	);
+	return response.data;
 };
 
-export const getTestCateogories = async () => {
-	try {
-		const response = await axios.get(`${API_BASE_URL}/d/testCategory/`);
-		return response.data;
-	} catch (error) {
-		console.error("Error fetching tests", error.message);
-		return [];
-	}
+export const getTestCategories = async () => {
+	const response = await axios.get(`${API_BASE_URL}/d/testCategory/`);
+
+	return response.data;
+};
+
+export const getTestObjects = async () => {
+	const response = await axios.get(`${API_BASE_URL}/d/testObject/`);
+
+	return response.data;
+};
+
+export const getTestConditionsByTestId = async (testId) => {
+	const response = await axios.get(
+		`${API_BASE_URL}/d/condition/${testId}/test/`
+	);
+	console.log(response.data, "test condition");
+	return response.data;
+};
+
+export const getUnitDimensions = async () => {
+	const response = await axios.get(`${API_BASE_URL}/u/unitdimension/`);
+	return response.data;
 };

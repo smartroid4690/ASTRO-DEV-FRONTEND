@@ -31,7 +31,6 @@ const Defaultlayout = () => {
 					</div>
 				</div>
 			</div>
-			;
 		</>
 	);
 };
