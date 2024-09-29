@@ -16,7 +16,6 @@ export const getAlloysByBaseAlloyId = async (baseAlloyId) => {
 
 export const getTestCategories = async () => {
 	const response = await axios.get(`${API_BASE_URL}/d/testCategory/`);
-
 	return response.data;
 };
 
@@ -26,16 +25,14 @@ export const getTestObjects = async () => {
 	return response.data;
 };
 
-export const getTestConditionsByTestId = async (testId) => {
-	const response = await axios.get(
-		`${API_BASE_URL}/d/condition/${testId}/test/`
-	);
-	console.log(response.data, "test condition");
+export const getTestConditionsByTestId = async (id) => {
+	const response = await axios.get(`${API_BASE_URL}/d/condition/${id}/test/`);
 	return response.data;
 };
 
-export const getUnitDimensions = async () => {
-	const response = await axios.get(`${API_BASE_URL}/u/unitdimension/`);
-	console.log(response.data, "unit dimension");
+export const getUnitDImensionsByConditionId = async (id) => {
+	const response = await axios.get(
+		`${API_BASE_URL}/u/unitdimension/${id}/condition`
+	);
 	return response.data;
 };
