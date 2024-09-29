@@ -240,8 +240,8 @@ const TestDetails = ({
 									render={({ field }) => (
 										<Dropdown
 											{...field}
-											options={testQuery.data || []}
-											loading={testQuery.isLoading}
+											options={testQuery?.data || []}
+											loading={testQuery?.isLoading}
 											onChange={(e) => handleConditionChange(e, objIndex)}
 											placeholder="Select Condition"
 											className="w-19rem"
