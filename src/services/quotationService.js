@@ -36,3 +36,13 @@ export const getUnitDImensionsByConditionId = async (id) => {
 	);
 	return response.data;
 };
+
+export const getTestParametersByTestId = async (id) => {
+	const response = await axios.get(`${API_BASE_URL}/d/parameter/${id}/test/`);
+	return response.data;
+};
+
+export const getDimensions = async () => {
+	const response = await axios.get(`${API_BASE_URL}/u/dimension/`);
+	return response.data;
+};

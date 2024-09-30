@@ -4,15 +4,23 @@ import {
 	getTestConditionsByTestId,
 	getTestObjects,
 	getUnitDImensionsByConditionId,
+	getTestParametersByTestId,
 } from "../services/quotationService";
 
 const useMultipleTestDetails = (initialTests = []) => {
 	const [tests, setTests] = useState(initialTests);
 
-	const testQueries = useQueries({
+	const testConditionQueries = useQueries({
 		queries: tests.map((test) => ({
 			queryKey: ["testConditions", test.id],
 			queryFn: () => getTestConditionsByTestId(test.id),
+			enabled: !!test.id,
+		})),
+	});
+	const testParamQueries = useQueries({
+		queries: tests.map((test) => ({
+			queryKey: ["testParameters", test.id],
+			queryFn: () => getTestParametersByTestId(test.id),
 			enabled: !!test.id,
 		})),
 	});
@@ -43,7 +51,9 @@ const useMultipleTestDetails = (initialTests = []) => {
 
 	const updateTest = useCallback((index, updates) => {
 		setTests((prevTests) =>
-			prevTests.map((test, i) => (i === index ? { ...test, ...updates } : test))
+			prevTests.map((test, i) => {
+				return i === index ? { ...test, ...updates } : test;
+			})
 		);
 	}, []);
 
@@ -56,7 +66,8 @@ const useMultipleTestDetails = (initialTests = []) => {
 		addTest,
 		updateTest,
 		removeTest,
-		testQueries,
+		testConditionQueries,
+		testParamQueries,
 		testObjectsQuery,
 		unitDimensionsQueries,
 	};

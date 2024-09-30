@@ -27,7 +27,8 @@ const Form = () => {
 		addTest,
 		updateTest,
 		removeTest,
-		testQueries,
+		testConditionQueries,
+		testParamQueries,
 		testObjectsQuery,
 		unitDimensionsQueries,
 	} = useMultipleTestDetails();
@@ -37,38 +38,38 @@ const Form = () => {
 		name: "details",
 	});
 	// Get saved form data from local storage
-	useEffect(() => {
-		const savedFormData = localStorage.getItem(LOCAL_STORAGE_KEY);
-		if (savedFormData) {
-			setLoadedFormData(JSON.parse(savedFormData));
-		} else {
-			setLoadedFormData({
-				requestor: 1,
-				base_metal_alloy: "",
-				alloy: "",
-				details: [],
-			});
-		}
-	}, []);
+	// useEffect(() => {
+	// 	const savedFormData = localStorage.getItem(LOCAL_STORAGE_KEY);
+	// 	if (savedFormData) {
+	// 		setLoadedFormData(JSON.parse(savedFormData));
+	// 	} else {
+	// 		setLoadedFormData({
+	// 			requestor: 1,
+	// 			base_metal_alloy: "",
+	// 			alloy: "",
+	// 			details: [],
+	// 		});
+	// 	}
+	// }, []);
 
-	useEffect(() => {
-		if (loadedFormData) {
-			reset(loadedFormData);
-		}
-	}, [loadedFormData, reset]);
+	// useEffect(() => {
+	// 	if (loadedFormData) {
+	// 		reset(loadedFormData);
+	// 	}
+	// }, [loadedFormData, reset]);
 
 	// Save form data to local storage
 	const formData = watch();
 
-	useEffect(() => {
-		if (formData && Object.keys(formData).length > 0) {
-			localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
-		}
-	}, [formData]);
+	// useEffect(() => {
+	// 	if (formData && Object.keys(formData).length > 0) {
+	// 		localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
+	// 	}
+	// }, [formData]);
 
-	useEffect(() => {
-		console.log(selectedTests);
-	}, [selectedTests]);
+	// useEffect(() => {
+	// 	// console.log(selectedTests);
+	// }, [selectedTests]);
 
 	// API CALLS
 	const { data: baseAlloys = [], isLoading: isBaseAlloysLoading } = useQuery({
@@ -85,7 +86,6 @@ const Form = () => {
 	// Handle form methods
 
 	const handleBaseAlloyChange = (e, field) => {
-		console.log(fields);
 		field.onChange(e.value.name);
 		setSelectedBaseAlloy(e.value);
 	};
@@ -212,7 +212,8 @@ const Form = () => {
 											add={addNewTest}
 											setValue={setValue}
 											setSelectedTests={setSelectedTests}
-											testQuery={testQueries[index]}
+											testConditionQuery={testConditionQueries[index]}
+											testParamQuery={testParamQueries[index]}
 											testObjectsQuery={testObjectsQuery}
 											unitDimensionsQuery={unitDimensionsQueries[index]}
 											updateTest={(updates) => updateTest(index, updates)}

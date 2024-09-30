@@ -10,6 +10,7 @@ import {
 	getTestCategories,
 	getTestObjects,
 	getUnitDImensionsByConditionId,
+	getDimensions,
 } from "../services/quotationService"; // Adjust the import path as needed
 import CustomDivider from "../components/CustomDivider";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -22,7 +23,8 @@ const TestDetails = ({
 	add,
 	setValue,
 	setSelectedTests,
-	testQuery,
+	testConditionQuery,
+	testParamQuery,
 	testObjectsQuery,
 	unitDimensionsQuery,
 	updateTest,
@@ -30,6 +32,7 @@ const TestDetails = ({
 	const [selectedTestId, setSelectedTestId] = useState(null);
 	const [selectedCondition, setSelectedCondition] = useState(null);
 	const [selectedConditionId, setSelectedConditionId] = useState(null);
+	const [selectedDimension, setSelectedDimension] = useState(null);
 
 	const {
 		fields: testObjectFields,
@@ -52,14 +55,17 @@ const TestDetails = ({
 		enabled: !!selectedTestId,
 	});
 
-	const { data: unitDimensions = null, isLoading: isUnitDimensionsLoading } =
+	const { data: unitDimensions = [], isLoading: isUnitDimensionsLoading } =
 		useQuery({
 			queryKey: ["unitDimensions", selectedConditionId],
 			queryFn: () => getUnitDImensionsByConditionId(selectedConditionId),
 			enabled: !!selectedConditionId,
 		});
 
-	// ... (keep other useQuery hooks as they are)
+	const { data: dimensions = [], isLoading: isDimensionsLoading } = useQuery({
+		queryKey: ["dimensions"],
+		queryFn: getDimensions,
+	});
 
 	const unitOptions = [
 		{ label: "mm", value: 1 },
@@ -157,6 +163,17 @@ const TestDetails = ({
 		updateTest({ selectedConditionId: e.value });
 	};
 
+	const handleDimensionChange = (e, objIndex, dimIndex) => {
+		setValue(
+			`details[${index}].test_objects[${objIndex}].object_dimension[${dimIndex}].dimension`,
+			e.value
+		);
+
+		setSelectedDimension(e.value);
+		console.log(e.value);
+		updateTest({ selectedDimension: e.value });
+	};
+
 	// const handleConditionChange = (e, idx) => {
 	// 	setValue(`details[${index}].test_objects[${idx}].test_condition`, e.value);
 	// 	setSelectedConditionId(e.value);
@@ -240,8 +257,8 @@ const TestDetails = ({
 									render={({ field }) => (
 										<Dropdown
 											{...field}
-											options={testQuery?.data || []}
-											loading={testQuery?.isLoading}
+											options={testConditionQuery?.data || []}
+											loading={testConditionQuery?.isLoading}
 											onChange={(e) => handleConditionChange(e, objIndex)}
 											placeholder="Select Condition"
 											className="w-19rem"
@@ -274,11 +291,11 @@ const TestDetails = ({
 										<>
 											<Dropdown
 												{...field}
-												options={unitDimensions}
+												options={unitDimensionsQuery?.data || []}
+												loading={unitDimensionsQuery?.isLoading}
 												placeholder="Unit"
 												className="w-auto"
 												variant="filled"
-												loading={isUnitDimensionsLoading}
 											/>
 											{/* <InputText
 											{...field}
@@ -362,7 +379,7 @@ const TestDetails = ({
 								onClick={() => addObjectDimension(objIndex)}
 							/>
 						</div>
-						{control._formValues.details[index].test_objects[
+						{control._formValues.details[index]?.test_objects[
 							objIndex
 						].object_dimension.map((dimension, dimIndex) => (
 							<div key={dimIndex} className="flex align-items-center gap-2">
@@ -372,7 +389,11 @@ const TestDetails = ({
 									render={({ field }) => (
 										<Dropdown
 											{...field}
-											options={quotationDimensionOptions}
+											options={dimensions}
+											loading={isDimensionsLoading}
+											onChange={(e) =>
+												handleDimensionChange(e, objIndex, dimIndex)
+											}
 											placeholder="Select Dimension"
 											className="w-19rem"
 										/>
@@ -396,7 +417,9 @@ const TestDetails = ({
 									render={({ field }) => (
 										<Dropdown
 											{...field}
-											options={unitOptions}
+											options={selectedDimension?.units || []}
+											loading={isDimensionsLoading}
+											disabled={!selectedDimension}
 											placeholder="Select Unit"
 											className="w-19rem"
 										/>
@@ -426,7 +449,7 @@ const TestDetails = ({
 								text
 							/>
 						</div>
-						{control._formValues.details[index].test_objects[
+						{control._formValues.details[index]?.test_objects[
 							objIndex
 						].test_parameters.map((parameter, paramIndex) => (
 							<div key={paramIndex} className="flex align-items-center gap-2">
@@ -436,7 +459,8 @@ const TestDetails = ({
 									render={({ field }) => (
 										<Dropdown
 											{...field}
-											options={parameterOptions}
+											options={testParamQuery?.data || []}
+											loading={testParamQuery?.isLoading}
 											placeholder="Select Parameter"
 											className="w-19rem"
 										/>
