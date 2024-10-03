@@ -26,19 +26,26 @@ export const getTestObjects = async () => {
 };
 
 export const getTestConditionsByTestId = async (id) => {
-	const response = await axios.get(`${API_BASE_URL}/d/condition/${id}/test/`);
+	const response = await axios.get(`${API_BASE_URL}/d/condition/?test=${id}`);
 	return response.data;
 };
 
-export const getUnitDImensionsByConditionId = async (id) => {
+export const getUnitDimensionsByConditionId = async (id) => {
 	const response = await axios.get(
-		`${API_BASE_URL}/u/unitdimension/${id}/condition`
+		`${API_BASE_URL}/u/unitdimension/?condition=${id}`
+	);
+	return response.data;
+};
+
+export const getUnitDimensionsByParameterId = async (id) => {
+	const response = await axios.get(
+		`${API_BASE_URL}/u/unitdimension/?parameter=${id}`
 	);
 	return response.data;
 };
 
 export const getTestParametersByTestId = async (id) => {
-	const response = await axios.get(`${API_BASE_URL}/d/parameter/${id}/test/`);
+	const response = await axios.get(`${API_BASE_URL}/d/parameter/?test=${id}`);
 	return response.data;
 };
 

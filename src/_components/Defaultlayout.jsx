@@ -23,7 +23,7 @@ const Defaultlayout = () => {
 						</div>
 					)}
 
-					<div className="flex-auto overflow-y-auto">
+					<div className="flex w-full justify-content-center overflow-y-auto">
 						<Outlet />
 						{/* <div className="flex-none">
 							<Footer />

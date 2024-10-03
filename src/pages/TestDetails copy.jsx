@@ -10,7 +10,7 @@ import {
 	getTestCategories,
 	getTestConditionsByTestId,
 	getTestObjects,
-	getUnitDImensionsByConditionId,
+	getUnitDimensionsByConditionId,
 } from "../services/quotationService"; // Adjust the import path as needed
 import CustomDivider from "../components/CustomDivider";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -58,7 +58,7 @@ const TestDetails = ({
 	const { data: unitDimensions = null, isLoading: isUnitDimensionsLoading } =
 		useQuery({
 			queryKey: ["unitDimensions", selectedConditionId],
-			queryFn: () => getUnitDImensionsByConditionId(selectedConditionId),
+			queryFn: () => getUnitDimensionsByConditionId(selectedConditionId),
 			enabled: !!selectedConditionId,
 		});
 
@@ -531,7 +531,7 @@ export default TestDetails;
 // 	const { data: unitDimensions = null, isLoading: isUnitDimensionsLoading } =
 // 		useQuery({
 // 			queryKey: ["unitDimensions", selectedConditionId],
-// 			queryFn: () => getUnitDImensionsByConditionId(selectedConditionId),
+// 			queryFn: () => getUnitDimensionsByConditionId(selectedConditionId),
 // 			enabled: !!selectedConditionId,
 // 		});
 

@@ -9,30 +9,24 @@ import { CascadeSelect } from "primereact/cascadeselect";
 import {
 	getTestCategories,
 	getTestObjects,
-	getUnitDImensionsByConditionId,
+	getUnitDimensionsByConditionId,
 	getDimensions,
-} from "../services/quotationService"; // Adjust the import path as needed
+} from "../services/quotationService";
 import CustomDivider from "../components/CustomDivider";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
-
 const TestDetails = ({
 	control,
 	index,
-	remove,
-	add,
 	setValue,
-	setSelectedTests,
 	testConditionQuery,
 	testParamQuery,
-	testObjectsQuery,
+	updateTestParameter,
 	unitDimensionsQuery,
 	updateTest,
 }) => {
 	const [selectedTestId, setSelectedTestId] = useState(null);
-	const [selectedCondition, setSelectedCondition] = useState(null);
 	const [selectedConditionId, setSelectedConditionId] = useState(null);
-	const [selectedDimension, setSelectedDimension] = useState(null);
+	const [selectedDimensions, setSelectedDimensions] = useState({});
+	const [selectedParameters, setSelectedParameters] = useState({});
 
 	const {
 		fields: testObjectFields,
@@ -43,7 +37,6 @@ const TestDetails = ({
 		name: `details[${index}].test_objects`,
 	});
 
-	// API CALLS
 	const { data: tests = [], isLoading: isTestsLoading } = useQuery({
 		queryKey: ["testCategories"],
 		queryFn: getTestCategories,
@@ -58,7 +51,7 @@ const TestDetails = ({
 	const { data: unitDimensions = [], isLoading: isUnitDimensionsLoading } =
 		useQuery({
 			queryKey: ["unitDimensions", selectedConditionId],
-			queryFn: () => getUnitDImensionsByConditionId(selectedConditionId),
+			queryFn: () => getUnitDimensionsByConditionId(selectedConditionId),
 			enabled: !!selectedConditionId,
 		});
 
@@ -67,25 +60,28 @@ const TestDetails = ({
 		queryFn: getDimensions,
 	});
 
-	const unitOptions = [
-		{ label: "mm", value: 1 },
-		{ label: "c", value: 2 },
-	];
+	const parameterUnitOptions = [];
 
-	const parameterOptions = [
-		{ label: "Stress Ratio", value: 1 },
-		{ label: "Max Stress", value: 2 },
-	];
+	useEffect(() => {
+		// Initialize selectedDimensions state when testObjectFields change
+		const newSelectedDimensions = {};
+		const newSelectedParameters = {};
 
-	const parameterUnitOptions = [
-		{ label: "Fahrenheit", value: 1 },
-		{ label: "Celsius", value: 2 },
-	];
+		testObjectFields.forEach((testObject, objIndex) => {
+			testObject.test_parameters.forEach((parameter, paramIndex) => {
+				newSelectedParameters[`${objIndex}-${paramIndex}`] =
+					parameter.test_parameter;
+			});
 
-	const quotationDimensionOptions = [
-		{ label: "c", value: 1 },
-		{ label: "mm", value: 2 },
-	];
+			testObject.object_dimension.forEach((dimension, dimIndex) => {
+				newSelectedDimensions[`${objIndex}-${dimIndex}`] = dimension.dimension;
+			});
+		});
+		setSelectedDimensions(newSelectedDimensions);
+		setSelectedParameters(newSelectedParameters);
+
+		console.log(newSelectedDimensions, newSelectedParameters);
+	}, [testObjectFields]);
 
 	const addTestObject = () => {
 		appendTestObject({
@@ -102,11 +98,21 @@ const TestDetails = ({
 	};
 
 	const addObjectDimension = (objIndex) => {
-		setValue(`details[${index}].test_objects[${objIndex}].object_dimension`, [
+		const newDimensions = [
 			...(control._formValues.details[index].test_objects[objIndex]
 				.object_dimension || []),
 			{ unit: "", dimension: "", value: "" },
-		]);
+		];
+		setValue(
+			`details[${index}].test_objects[${objIndex}].object_dimension`,
+			newDimensions
+		);
+
+		// Update selectedDimensions state
+		setSelectedDimensions((prev) => ({
+			...prev,
+			[`${objIndex}-${newDimensions.length - 1}`]: "",
+		}));
 	};
 
 	const removeObjectDimension = (objIndex, dimIndex) => {
@@ -117,42 +123,59 @@ const TestDetails = ({
 			`details[${index}].test_objects[${objIndex}].object_dimension`,
 			currentDimensions.filter((_, i) => i !== dimIndex)
 		);
+
+		// Update selectedDimensions state
+		setSelectedDimensions((prev) => {
+			const newState = { ...prev };
+			delete newState[`${objIndex}-${dimIndex}`];
+			return newState;
+		});
 	};
 
 	const addTestParameter = (objIndex) => {
-		setValue(`details[${index}].test_objects[${objIndex}].test_parameters`, [
+		const newParameters = [
 			...(control._formValues.details[index].test_objects[objIndex]
 				.test_parameters || []),
 			{ test_parameter: "", test_parameter_value: "", unit_dimension: "" },
-		]);
+		];
+		setValue(
+			`details[${index}].test_objects[${objIndex}].test_parameters`,
+			newParameters
+		);
+
+		// Update selectedParameters state
+		setSelectedParameters((prev) => ({
+			...prev,
+			[`${objIndex}-${newParameters.length - 1}`]: "",
+		}));
 	};
 
 	const removeTestParameter = (objIndex, paramIndex) => {
-		const currentParams =
+		const currentParameters =
 			control._formValues.details[index].test_objects[objIndex].test_parameters;
 		setValue(
 			`details[${index}].test_objects[${objIndex}].test_parameters`,
-			currentParams.filter((_, i) => i !== paramIndex)
+			currentParameters.filter((_, i) => i !== paramIndex)
 		);
-	};
 
-	// ... (keep other handler functions as they are)
+		// Update selectedParameters state
+		setSelectedParameters((prev) => {
+			const newState = { ...prev };
+			delete newState[`${objIndex}-${paramIndex}`];
+			return newState;
+		});
+	};
 
 	const handleTestChange = (e) => {
 		setValue(`details[${index}].test`, e.value.value);
 		setValue(`details[${index}].testLabel`, e.value.label);
-		updateTest({ id: e.value.value, selectedConditionId: null });
-		setSelectedTests((prevSelectedTests) => {
-			if (prevSelectedTests.some((item) => item.index === index)) {
-				return prevSelectedTests.map((item) => {
-					if (item.index === index) {
-						return { ...item, label: e.value.label };
-					}
-					return item;
-				});
-			}
-			return [...prevSelectedTests, { index: index, label: e.value.label }];
+		updateTest({
+			id: e.value.value,
+			selectedConditionId: null,
+			index: index,
+			label: e.value.label,
 		});
+		setSelectedTestId(e.value.value);
 	};
 
 	const handleConditionChange = (e, objIndex) => {
@@ -160,6 +183,7 @@ const TestDetails = ({
 			`details[${index}].test_objects[${objIndex}].test_condition`,
 			e.value
 		);
+		setSelectedConditionId(e.value);
 		updateTest({ selectedConditionId: e.value });
 	};
 
@@ -169,20 +193,41 @@ const TestDetails = ({
 			e.value
 		);
 
-		setSelectedDimension(e.value);
-		console.log(e.value);
+		setSelectedDimensions((prev) => ({
+			...prev,
+			[`${objIndex}-${dimIndex}`]: e.value,
+		}));
+
+		setValue(
+			`details[${index}].test_objects[${objIndex}].object_dimension[${dimIndex}].unit`,
+			""
+		);
+
 		updateTest({ selectedDimension: e.value });
 	};
 
-	// const handleConditionChange = (e, idx) => {
-	// 	setValue(`details[${index}].test_objects[${idx}].test_condition`, e.value);
-	// 	setSelectedConditionId(e.value);
-	// 	setSelectedCondition(findItemByValue(testConditions, e.value));
-	// };
+	const handleParameterChange = (e, objIndex, paramIndex) => {
+		setValue(
+			`details[${index}].test_objects[${objIndex}].test_parameters[${paramIndex}].test_parameter`,
+			e.value
+		);
+
+		setSelectedParameters((prev) => ({
+			...prev,
+			[`${objIndex}-${paramIndex}`]: e.value,
+		}));
+
+		setValue(
+			`details[${index}].test_objects[${objIndex}].test_parameters[${paramIndex}].unit_dimension`,
+			""
+		);
+
+		updateTest({ selectedParameter: e.value });
+	};
 
 	return (
 		<div>
-			<div className="flex  justify-content-between align-items-end my-4">
+			<div className="flex  justify-content-between align-items-end mb-5 mt-4 ">
 				<div className="flex flex-column gap-2 ">
 					<label className="font-semibold">Select Your Test</label>
 					<Controller
@@ -212,7 +257,7 @@ const TestDetails = ({
 									loading={isTestsLoading}
 									optionGroupLabel="label"
 									optionGroupChildren={["children", "children", "children"]}
-									className="w-full md:w-19rem"
+									className="w-full md:w-16rem"
 									breakpoint="767px"
 									placeholder="Select a Test"
 									value={findItemByValue(tests, field.value)}
@@ -221,7 +266,7 @@ const TestDetails = ({
 						}}
 					/>
 				</div>
-				<ButtonGroup>
+				{/* <ButtonGroup>
 					<Button
 						icon="pi pi-plus"
 						label={"Add"}
@@ -239,91 +284,18 @@ const TestDetails = ({
 						text
 						severity="danger"
 					/>
-				</ButtonGroup>
+				</ButtonGroup> */}
 			</div>
 
 			{/* ... (keep the existing JSX for test selection) */}
 
 			{testObjectFields.map((testObject, objIndex) => (
-				<div key={testObject.id} className="flex flex-column gap-4">
-					{/* TEST CONDITIONS */}
-					<div className="flex flex-column gap-2 ">
-						<div className="p-inputgroup">
-							<div className="flex flex-column gap-2 mt-2">
-								<label className="font-semibold">Test Condition</label>
-								<Controller
-									name={`details[${index}].test_objects[${objIndex}].test_condition`}
-									control={control}
-									render={({ field }) => (
-										<Dropdown
-											{...field}
-											options={testConditionQuery?.data || []}
-											loading={testConditionQuery?.isLoading}
-											onChange={(e) => handleConditionChange(e, objIndex)}
-											placeholder="Select Condition"
-											className="w-19rem"
-										/>
-									)}
-								/>
-							</div>
-							<div className="flex flex-column gap-2 mt-2">
-								<label className="font-semibold">Test Condition Value</label>
-								<Controller
-									name={`details[${index}].test_objects[${objIndex}].test_condition_value`}
-									control={control}
-									render={({ field }) => (
-										<InputText
-											{...field}
-											type="number"
-											placeholder="Enter Value"
-											className="w-19rem"
-											// max={}
-										/>
-									)}
-								/>
-							</div>
-							<div className="flex flex-column gap-2 mt-2">
-								<label className="font-semibold">unit</label>
-								<Controller
-									name={`details[${index}].test_objects[${objIndex}].unit_dimension`}
-									control={control}
-									render={({ field }) => (
-										<>
-											<Dropdown
-												{...field}
-												options={unitDimensionsQuery?.data || []}
-												loading={unitDimensionsQuery?.isLoading}
-												placeholder="Unit"
-												className="w-auto"
-												variant="filled"
-											/>
-											{/* <InputText
-											{...field}
-											value={unitDimensions?.label || ""}
-											placeholder="Unit"
-											className="w-auto"
-											readOnly
-											variant="filled"
-											disabled
-											loading={isUnitDimensionsLoading}
-										/>
-										<input
-											type="hidden"
-											{...field}
-											value={unitDimensions?.id || ""}
-										/> */}
-										</>
-									)}
-								/>
-							</div>
-						</div>
-					</div>
-
+				<div key={testObject.id} className="flex flex-column gap-4 px-4 ">
 					{/*  TEST OBJECTS */}
 					<div className="flex justify-content-between align-items-end mt-2">
 						<div className="flex flex-column gap-2">
 							<label className="font-semibold">Test Objects</label>
-							<div className="flex align-items-center gap-3">
+							<div className="flex gap-2">
 								<Controller
 									name={`details[${index}].test_objects[${objIndex}].test_object`}
 									control={control}
@@ -334,36 +306,106 @@ const TestDetails = ({
 											onChange={(e) => field.onChange(e.value)}
 											options={testObjects}
 											placeholder="Select Test Object"
-											className="w-19rem"
+											className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
 										/>
 									)}
 								/>
-								<FontAwesomeIcon
-									className="text-gray-700"
-									icon={faCircleExclamation}
+								<Controller
+									name={`details[${index}].test_objects[${objIndex}].test_object_quantity`}
+									control={control}
+									render={({ field }) => (
+										<InputText
+											{...field}
+											type="number"
+											placeholder="Object Quantity"
+											className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
+											// max={}
+										/>
+									)}
+								/>
+								<Button
+									icon="pi pi-times"
+									onClick={() => removeTestObject(objIndex)}
+									rounded
+									text
+									disabled={testObjectFields.length <= 1}
+									tooltip={
+										testObjectFields.length <= 1
+											? "Atleast one test object is required"
+											: "Delete test object and related fields"
+									}
+									tooltipOptions={{ showOnDisabled: true }}
+									severity={
+										testObjectFields.length <= 1 ? "secondary" : "danger"
+									}
 								/>
 							</div>
 						</div>
 
-						<ButtonGroup>
-							<Button
-								icon="pi pi-plus"
-								label={"Add"}
-								onClick={() => addTestObject(objIndex)}
-								rounded
-								text
-								className="text-center"
-								aria-label="Add Test Object"
-							/>
-							<Button
-								icon="pi pi-times"
-								label={"Delete"}
-								onClick={() => removeTestObject(objIndex)}
-								rounded
-								text
-								severity="danger"
-							/>
-						</ButtonGroup>
+						<Button
+							icon="pi pi-plus"
+							label={"Add"}
+							onClick={() => addTestObject(objIndex)}
+							rounded
+							text
+							tooltip="Add test object"
+							className="p-0"
+							aria-label="Add Test Object"
+						/>
+					</div>
+
+					{/* TEST CONDITIONS */}
+					<div className="flex flex-column gap-2 ">
+						<div className="p-inputgroup">
+							<div className="flex flex-column gap-2 mt-2">
+								<label className="font-semibold">Test Condition</label>
+								<div className="flex gap-2">
+									<Controller
+										name={`details[${index}].test_objects[${objIndex}].test_condition`}
+										control={control}
+										render={({ field }) => (
+											<Dropdown
+												{...field}
+												options={testConditionQuery?.data || []}
+												loading={testConditionQuery?.isLoading}
+												onChange={(e) => handleConditionChange(e, objIndex)}
+												placeholder="Select Condition"
+												className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
+											/>
+										)}
+									/>
+									<Controller
+										name={`details[${index}].test_objects[${objIndex}].test_condition_value`}
+										control={control}
+										render={({ field }) => (
+											<InputText
+												{...field}
+												type="number"
+												placeholder="Condition Value"
+												className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
+												// max={}
+											/>
+										)}
+									/>
+									<Controller
+										name={`details[${index}].test_objects[${objIndex}].unit_dimension`}
+										control={control}
+										render={({ field }) => (
+											<>
+												<Dropdown
+													{...field}
+													options={unitDimensionsQuery?.data || []}
+													loading={unitDimensionsQuery?.isLoading}
+													placeholder="Unit"
+													className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
+													variant="filled"
+												/>
+											</>
+										)}
+									/>
+								</div>
+							</div>
+						</div>
 					</div>
 
 					{/* OBJECT DIMENSIONS */}
@@ -391,11 +433,13 @@ const TestDetails = ({
 											{...field}
 											options={dimensions}
 											loading={isDimensionsLoading}
+											optionLabel="label"
+											optionValue="id"
 											onChange={(e) =>
 												handleDimensionChange(e, objIndex, dimIndex)
 											}
 											placeholder="Select Dimension"
-											className="w-19rem"
+											className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
 										/>
 									)}
 								/>
@@ -407,30 +451,62 @@ const TestDetails = ({
 											{...field}
 											type="number"
 											placeholder="Enter Value"
-											className="w-19rem"
+											className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
 										/>
 									)}
 								/>
 								<Controller
 									name={`details[${index}].test_objects[${objIndex}].object_dimension[${dimIndex}].unit`}
 									control={control}
-									render={({ field }) => (
-										<Dropdown
-											{...field}
-											options={selectedDimension?.units || []}
-											loading={isDimensionsLoading}
-											disabled={!selectedDimension}
-											placeholder="Select Unit"
-											className="w-19rem"
-										/>
-									)}
+									render={({ field }) => {
+										const selectedDimension = dimensions.find(
+											(param) =>
+												param.id ===
+												selectedDimensions[`${objIndex}-${dimIndex}`]
+										);
+
+										const unitOptions = selectedDimension
+											? selectedDimension.units
+											: [];
+
+										return (
+											<Dropdown
+												{...field}
+												options={unitOptions}
+												optionLabel="label"
+												optionValue="id"
+												loading={isDimensionsLoading}
+												disabled={
+													!selectedDimensions[`${objIndex}-${dimIndex}`]
+												}
+												placeholder="Select Unit"
+												className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
+											/>
+										);
+									}}
 								/>
 								<Button
 									icon="pi pi-times"
 									onClick={() => removeObjectDimension(objIndex, dimIndex)}
 									rounded
 									text
-									severity="danger"
+									disabled={
+										control._formValues.details[index]?.test_objects[objIndex]
+											.object_dimension.length <= 1
+									}
+									tooltip={
+										control._formValues.details[index]?.test_objects[objIndex]
+											.object_dimension.length <= 1
+											? "Atleast one dimension is required"
+											: ""
+									}
+									tooltipOptions={{ showOnDisabled: true }}
+									severity={
+										control._formValues.details[index]?.test_objects[objIndex]
+											.object_dimension.length <= 1
+											? "secondary"
+											: "danger"
+									}
 								/>
 							</div>
 						))}
@@ -459,10 +535,15 @@ const TestDetails = ({
 									render={({ field }) => (
 										<Dropdown
 											{...field}
+											onChange={(e) =>
+												handleParameterChange(e, objIndex, paramIndex)
+											}
 											options={testParamQuery?.data || []}
 											loading={testParamQuery?.isLoading}
+											optionLabel="label"
+											optionValue="id"
 											placeholder="Select Parameter"
-											className="w-19rem"
+											className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
 										/>
 									)}
 								/>
@@ -474,21 +555,32 @@ const TestDetails = ({
 											{...field}
 											type="number"
 											placeholder="Enter Value"
-											className="w-19rem"
+											className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
 										/>
 									)}
 								/>
 								<Controller
 									name={`details[${index}].test_objects[${objIndex}].test_parameters[${paramIndex}].unit_dimension`}
 									control={control}
-									render={({ field }) => (
-										<Dropdown
-											{...field}
-											options={parameterUnitOptions}
-											placeholder="Select Unit"
-											className="w-19rem"
-										/>
-									)}
+									render={({ field }) => {
+										const selectedParam = testParamQuery?.data?.find(
+											(param) =>
+												param.id ===
+												selectedParameters[`${objIndex}-${paramIndex}`]
+										);
+
+										const unitOptions = selectedParam
+											? selectedParam.units
+											: [];
+										return (
+											<Dropdown
+												{...field}
+												options={unitOptions || []}
+												placeholder="Select Unit"
+												className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
+											/>
+										);
+									}}
 								/>
 								<Button
 									icon="pi pi-times"
@@ -500,13 +592,6 @@ const TestDetails = ({
 							</div>
 						))}
 					</div>
-					<Button
-						icon="pi pi-times"
-						label="Remove Test Object"
-						onClick={() => removeTestObject(objIndex)}
-						className="w-19rem mt-2"
-						severity="danger"
-					/>
 
 					<CustomDivider />
 				</div>

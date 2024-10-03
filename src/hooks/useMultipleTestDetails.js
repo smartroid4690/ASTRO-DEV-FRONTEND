@@ -3,26 +3,36 @@ import { useQueries } from "@tanstack/react-query";
 import {
 	getTestConditionsByTestId,
 	getTestObjects,
-	getUnitDImensionsByConditionId,
+	getUnitDimensionsByConditionId,
 	getTestParametersByTestId,
+	getUnitDimensionsByParameterId,
 } from "../services/quotationService";
 
 const useMultipleTestDetails = (initialTests = []) => {
-	const [tests, setTests] = useState(initialTests);
+	const [selectedTests, setSelectedTests] = useState(
+		initialTests.map((test) => ({
+			...test,
+		}))
+	);
 
-	const testConditionQueries = useQueries({
-		queries: tests.map((test) => ({
-			queryKey: ["testConditions", test.id],
-			queryFn: () => getTestConditionsByTestId(test.id),
-			enabled: !!test.id,
-		})),
-	});
-	const testParamQueries = useQueries({
-		queries: tests.map((test) => ({
-			queryKey: ["testParameters", test.id],
-			queryFn: () => getTestParametersByTestId(test.id),
-			enabled: !!test.id,
-		})),
+	const testQueries = useQueries({
+		queries: selectedTests.flatMap((test) => [
+			{
+				queryKey: ["testConditions", test.id],
+				queryFn: () => getTestConditionsByTestId(test.id),
+				enabled: !!test.id,
+			},
+			{
+				queryKey: ["testParameters", test.id],
+				queryFn: () => getTestParametersByTestId(test.id),
+				enabled: !!test.id,
+			},
+			{
+				queryKey: ["unitDimensions", test.selectedConditionId],
+				queryFn: () => getUnitDimensionsByConditionId(test.selectedConditionId),
+				enabled: !!test.selectedConditionId,
+			},
+		]),
 	});
 
 	const testObjectsQuery = useQueries({
@@ -34,42 +44,45 @@ const useMultipleTestDetails = (initialTests = []) => {
 		],
 	})[0];
 
-	const unitDimensionsQueries = useQueries({
-		queries: tests.map((test) => ({
-			queryKey: ["unitDimensions", test.selectedConditionId],
-			queryFn: () => getUnitDImensionsByConditionId(test.selectedConditionId),
-			enabled: !!test.selectedConditionId,
-		})),
-	});
-
 	const addTest = useCallback(() => {
-		setTests((prevTests) => [
+		setSelectedTests((prevTests) => [
 			...prevTests,
-			{ id: null, selectedConditionId: null },
+			{
+				id: null,
+				selectedConditionId: null,
+				index: null,
+				label: "",
+			},
 		]);
 	}, []);
 
 	const updateTest = useCallback((index, updates) => {
-		setTests((prevTests) =>
+		setSelectedTests((prevTests) =>
 			prevTests.map((test, i) => {
-				return i === index ? { ...test, ...updates } : test;
+				if (i === index) {
+					return {
+						...test,
+						...updates,
+					};
+				}
+				return test;
 			})
 		);
 	}, []);
 
 	const removeTest = useCallback((index) => {
-		setTests((prevTests) => prevTests.filter((_, i) => i !== index));
+		setSelectedTests((prevTests) => prevTests.filter((_, i) => i !== index));
 	}, []);
 
+	//
+
 	return {
-		tests,
+		selectedTests,
 		addTest,
 		updateTest,
 		removeTest,
-		testConditionQueries,
-		testParamQueries,
+		testQueries,
 		testObjectsQuery,
-		unitDimensionsQueries,
 	};
 };
 

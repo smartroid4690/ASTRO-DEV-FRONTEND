@@ -1,86 +1,54 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { Button } from "primereact/button";
-import Card from "../components/Card";
+import QuotationOverview from "../components/QuotationOverview";
 import TestDetails from "./TestDetails";
 import CustomDivider from "../components/CustomDivider";
 import { useQuery } from "@tanstack/react-query";
-import {
-	getBaseAlloys,
-	getAlloysByBaseAlloyId,
-} from "../services/quotationService";
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Dropdown } from "primereact/dropdown";
 import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
 import useMultipleTestDetails from "../hooks/useMultipleTestDetails";
+import { InputText } from "primereact/inputtext";
+import { Checkbox } from "primereact/checkbox";
+import {
+	getBaseAlloys,
+	getAlloysByBaseAlloyId,
+} from "../services/quotationService";
 
 const LOCAL_STORAGE_KEY = "formData";
 const Form = () => {
 	const [selectedTestIndex, setSelectedTestIndex] = useState(0);
-	const [loadedFormData, setLoadedFormData] = useState(null);
 	const [selectedBaseAlloy, setSelectedBaseAlloy] = useState(null);
-	const [selectedTests, setSelectedTests] = useState([]);
+	const [useCustomAlloy, setUseCustomAlloy] = useState(false);
 
-	const { control, handleSubmit, setValue, watch, reset } = useForm();
+	const { control, handleSubmit, setValue, getValues } = useForm();
 	const {
-		tests,
+		selectedTests,
 		addTest,
 		updateTest,
 		removeTest,
-		testConditionQueries,
-		testParamQueries,
+		testQueries,
 		testObjectsQuery,
-		unitDimensionsQueries,
 	} = useMultipleTestDetails();
 
 	const { fields, append, remove } = useFieldArray({
 		control,
 		name: "details",
 	});
-	// Get saved form data from local storage
-	// useEffect(() => {
-	// 	const savedFormData = localStorage.getItem(LOCAL_STORAGE_KEY);
-	// 	if (savedFormData) {
-	// 		setLoadedFormData(JSON.parse(savedFormData));
-	// 	} else {
-	// 		setLoadedFormData({
-	// 			requestor: 1,
-	// 			base_metal_alloy: "",
-	// 			alloy: "",
-	// 			details: [],
-	// 		});
-	// 	}
-	// }, []);
-
-	// useEffect(() => {
-	// 	if (loadedFormData) {
-	// 		reset(loadedFormData);
-	// 	}
-	// }, [loadedFormData, reset]);
-
-	// Save form data to local storage
-	const formData = watch();
-
-	// useEffect(() => {
-	// 	if (formData && Object.keys(formData).length > 0) {
-	// 		localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(formData));
-	// 	}
-	// }, [formData]);
-
-	// useEffect(() => {
-	// 	// console.log(selectedTests);
-	// }, [selectedTests]);
 
 	// API CALLS
 	const { data: baseAlloys = [], isLoading: isBaseAlloysLoading } = useQuery({
 		queryKey: ["baseAlloys"],
 		queryFn: getBaseAlloys,
+		enabled: !useCustomAlloy,
 	});
 
 	const { data: alloys = [], isLoading: isAlloysLoading } = useQuery({
 		queryKey: ["alloys", selectedBaseAlloy?.id],
 		queryFn: () => getAlloysByBaseAlloyId(selectedBaseAlloy.id),
-		enabled: !!selectedBaseAlloy,
+		enabled: !!selectedBaseAlloy && !useCustomAlloy,
 	});
 
 	// Handle form methods
@@ -125,8 +93,7 @@ const Form = () => {
 			...data,
 			details: data.details.map(({ testLabel, ...rest }) => rest),
 		};
-		console.log(data);
-		console.log(submitData);
+		console.dir(submitData);
 	};
 
 	return (
@@ -144,8 +111,14 @@ const Form = () => {
 						style={{ contain: "content" }}
 					>
 						<form onSubmit={handleSubmit(onSubmit)}>
-							<div className="flex align-items-center justify-content-between mb-4">
-								<label className="font-semibold">Select Your Base Alloy</label>
+							<div className="flex align-items-center justify-content-between align-items-center mb-2">
+								<label
+									className={`font-semibold ${
+										useCustomAlloy && "text-black-alpha-40"
+									}`}
+								>
+									Select Your Base Alloy
+								</label>
 								<div className="flex gap-3 align-items-center">
 									<Controller
 										name="base_metal_alloy"
@@ -157,6 +130,7 @@ const Form = () => {
 													label: alloy.name,
 													value: alloy,
 												}))}
+												disabled={useCustomAlloy}
 												loading={isBaseAlloysLoading}
 												editable
 												onChange={(e) => handleBaseAlloyChange(e, field)}
@@ -171,8 +145,15 @@ const Form = () => {
 									/>
 								</div>
 							</div>
-							<div className="flex align-items-center justify-content-between mb-2">
-								<label className="font-semibold">Select Your Alloy</label>
+
+							<div className="flex align-items-center justify-content-between align-items-center mb-2">
+								<label
+									className={`font-semibold ${
+										useCustomAlloy && "text-black-alpha-40"
+									}`}
+								>
+									Select Your Alloy
+								</label>
 								<div className="flex gap-3 align-items-center">
 									<Controller
 										name="alloy"
@@ -181,7 +162,7 @@ const Form = () => {
 											<Dropdown
 												{...field}
 												loading={isAlloysLoading}
-												disabled={alloys.length === 0 ? true : false}
+												disabled={alloys.length === 0 || useCustomAlloy}
 												options={alloys.map((alloy) => ({
 													label: alloy.name,
 													value: alloy.name,
@@ -197,29 +178,79 @@ const Form = () => {
 									/>
 								</div>
 							</div>
-							<CustomDivider />
-							{fields.map(
-								(item, index) =>
+
+							<div className="flex align-items-center gap-2 align-items-center my-3">
+								<label className="">Use Custom Alloy</label>
+								<Checkbox
+									checked={useCustomAlloy}
+									onChange={(e) => setUseCustomAlloy(e.checked)}
+								/>
+							</div>
+							{useCustomAlloy && (
+								<>
+									<div className="flex align-items-center justify-content-between align-items-center mb-2">
+										<label className="font-semibold">Enter Base Alloy</label>
+										<div className="flex gap-3 align-items-center">
+											<Controller
+												name="base_metal_alloy"
+												control={control}
+												render={({ field }) => (
+													<InputText
+														{...field}
+														required
+														value={field.value || ""}
+														placeholder="Enter Base Alloy"
+														className="w-full md:w-14rem"
+													/>
+												)}
+											/>
+										</div>
+									</div>
+
+									<div className="flex align-items-center justify-content-between align-items-center mb-4">
+										<label className="font-semibold">Enter Alloy</label>
+										<div className="flex gap-3 align-items-center">
+											<Controller
+												name="alloy"
+												control={control}
+												render={({ field }) => (
+													<InputText
+														{...field}
+														required
+														value={field.value || ""}
+														placeholder="Enter Alloy"
+														className="w-full md:w-14rem"
+													/>
+												)}
+											/>
+										</div>
+									</div>
+								</>
+							)}
+
+							<div className="py-4">
+								<CustomDivider />
+							</div>
+
+							{fields.map((item, index) => {
+								return (
 									index === selectedTestIndex && (
 										<TestDetails
 											key={item.id}
 											control={control}
 											index={index}
-											remove={() => {
-												remove(index);
-												removeTest(index);
-											}}
-											add={addNewTest}
 											setValue={setValue}
-											setSelectedTests={setSelectedTests}
-											testConditionQuery={testConditionQueries[index]}
-											testParamQuery={testParamQueries[index]}
+											getValues={getValues}
+											testConditionQuery={testQueries[index * 3]}
+											testParamQuery={testQueries[index * 3 + 1]}
+											unitDimensionsQuery={testQueries[index * 3 + 2]}
 											testObjectsQuery={testObjectsQuery}
-											unitDimensionsQuery={unitDimensionsQueries[index]}
 											updateTest={(updates) => updateTest(index, updates)}
 										/>
 									)
-							)}
+								);
+							})}
+
 							<div className="flex justify-content-center">
 								<Button className="mt-4 w-3" type="submit" label="Submit" />
 							</div>
@@ -228,10 +259,13 @@ const Form = () => {
 				</div>
 			</div>
 			<div className="mt-8 hidden lg:block">
-				<Card
-					formData={watch()}
-					onClick={addNewTest}
+				<QuotationOverview
+					onAddTestClick={addNewTest}
 					onTestClick={handleTestClick}
+					onTestRemove={(index) => {
+						remove(index);
+						removeTest(index);
+					}}
 					selectedTestIndex={selectedTestIndex}
 					selectedTests={selectedTests}
 				/>
