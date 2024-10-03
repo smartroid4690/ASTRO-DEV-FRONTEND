@@ -79,11 +79,10 @@ const TestDetails = ({
 		});
 		setSelectedDimensions(newSelectedDimensions);
 		setSelectedParameters(newSelectedParameters);
-
-		console.log(newSelectedDimensions, newSelectedParameters);
 	}, [testObjectFields]);
 
-	const addTestObject = () => {
+	const addTestObject = (e) => {
+		e.preventDefault();
 		appendTestObject({
 			test_object: "",
 			test_object_quantity: "",
@@ -97,7 +96,8 @@ const TestDetails = ({
 		});
 	};
 
-	const addObjectDimension = (objIndex) => {
+	const addObjectDimension = (e, objIndex) => {
+		e.preventDefault();
 		const newDimensions = [
 			...(control._formValues.details[index].test_objects[objIndex]
 				.object_dimension || []),
@@ -132,7 +132,8 @@ const TestDetails = ({
 		});
 	};
 
-	const addTestParameter = (objIndex) => {
+	const addTestParameter = (e, objIndex) => {
+		e.preventDefault();
 		const newParameters = [
 			...(control._formValues.details[index].test_objects[objIndex]
 				.test_parameters || []),
@@ -345,7 +346,7 @@ const TestDetails = ({
 						<Button
 							icon="pi pi-plus"
 							label={"Add"}
-							onClick={() => addTestObject(objIndex)}
+							onClick={(e) => addTestObject(e)}
 							rounded
 							text
 							tooltip="Add test object"
@@ -418,7 +419,7 @@ const TestDetails = ({
 								rounded
 								className="p-0"
 								text
-								onClick={() => addObjectDimension(objIndex)}
+								onClick={(e) => addObjectDimension(e, objIndex)}
 							/>
 						</div>
 						{control._formValues.details[index]?.test_objects[
@@ -518,7 +519,7 @@ const TestDetails = ({
 							<label className="font-semibold">Test Parameters</label>
 							<Button
 								icon="pi pi-plus"
-								onClick={() => addTestParameter(objIndex)}
+								onClick={(e) => addTestParameter(e, objIndex)}
 								className="p-0"
 								rounded
 								label="Add"
@@ -596,13 +597,6 @@ const TestDetails = ({
 					<CustomDivider />
 				</div>
 			))}
-
-			<Button
-				icon="pi pi-plus"
-				label="Add Test Object"
-				onClick={addTestObject}
-				className="w-full mt-4"
-			/>
 
 			<CustomDivider />
 		</div>

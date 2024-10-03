@@ -1,8 +1,7 @@
 import * as Yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
 
 // Validation schema
-const validationSchema = Yup.object().shape({
+export const validationSchema = Yup.object().shape({
 	base_metal_alloy: Yup.string().required("Base metal alloy is required"),
 	alloy: Yup.string().required("Alloy is required"),
 	details: Yup.array()

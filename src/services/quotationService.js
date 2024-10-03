@@ -53,3 +53,8 @@ export const getDimensions = async () => {
 	const response = await axios.get(`${API_BASE_URL}/u/dimension/`);
 	return response.data;
 };
+
+export const formSubmit = async (data) => {
+	const response = await axios.post(`${API_BASE_URL}/r/quotation/`, data);
+	return response.data;
+};

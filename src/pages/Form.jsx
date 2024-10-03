@@ -15,7 +15,11 @@ import { Checkbox } from "primereact/checkbox";
 import {
 	getBaseAlloys,
 	getAlloysByBaseAlloyId,
+	formSubmit,
 } from "../services/quotationService";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { validationSchema } from "../utils/QuotationFormValidation";
+import { classNames } from "primereact/utils";
 
 const LOCAL_STORAGE_KEY = "formData";
 const Form = () => {
@@ -23,7 +27,17 @@ const Form = () => {
 	const [selectedBaseAlloy, setSelectedBaseAlloy] = useState(null);
 	const [useCustomAlloy, setUseCustomAlloy] = useState(false);
 
-	const { control, handleSubmit, setValue, getValues } = useForm();
+	const {
+		control,
+		handleSubmit,
+		setValue,
+		getValues,
+		formState: { errors },
+	} = useForm({
+		defaultValues: {
+			requestor: 1,
+		},
+	});
 	const {
 		selectedTests,
 		addTest,
@@ -93,7 +107,14 @@ const Form = () => {
 			...data,
 			details: data.details.map(({ testLabel, ...rest }) => rest),
 		};
-		console.dir(submitData);
+
+		try {
+			console.log(submitData);
+			response = await formSubmit(submitData);
+			console.log(response);
+		} catch (error) {
+			console.log(error);
+		}
 	};
 
 	return (
@@ -123,20 +144,24 @@ const Form = () => {
 									<Controller
 										name="base_metal_alloy"
 										control={control}
-										render={({ field }) => (
-											<Dropdown
-												{...field}
-												options={baseAlloys.map((alloy) => ({
-													label: alloy.name,
-													value: alloy,
-												}))}
-												disabled={useCustomAlloy}
-												loading={isBaseAlloysLoading}
-												editable
-												onChange={(e) => handleBaseAlloyChange(e, field)}
-												placeholder="Select Base Alloy"
-												className="w-full md:w-14rem"
-											/>
+										render={({ field, fieldState: { invalid } }) => (
+											<>
+												<Dropdown
+													{...field}
+													options={baseAlloys.map((alloy) => ({
+														label: alloy.name,
+														value: alloy,
+													}))}
+													disabled={useCustomAlloy}
+													loading={isBaseAlloysLoading}
+													editable
+													onChange={(e) => handleBaseAlloyChange(e, field)}
+													placeholder="Select Base Alloy"
+													className={classNames("w-full md:w-14rem", {
+														"p-invalid": invalid,
+													})}
+												/>
+											</>
 										)}
 									/>
 									<FontAwesomeIcon
