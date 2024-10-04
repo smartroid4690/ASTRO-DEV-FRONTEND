@@ -24,7 +24,6 @@ const TestDetails = ({
 	updateTest,
 }) => {
 	const [selectedTestId, setSelectedTestId] = useState(null);
-	const [selectedConditionId, setSelectedConditionId] = useState(null);
 	const [selectedDimensions, setSelectedDimensions] = useState({});
 	const [selectedParameters, setSelectedParameters] = useState({});
 
@@ -48,22 +47,11 @@ const TestDetails = ({
 		enabled: !!selectedTestId,
 	});
 
-	const { data: unitDimensions = [], isLoading: isUnitDimensionsLoading } =
-		useQuery({
-			queryKey: ["unitDimensions", selectedConditionId],
-			queryFn: () => getUnitDimensionsByConditionId(selectedConditionId),
-			enabled: !!selectedConditionId,
-		});
-
 	const { data: dimensions = [], isLoading: isDimensionsLoading } = useQuery({
 		queryKey: ["dimensions"],
 		queryFn: getDimensions,
 	});
-
-	const parameterUnitOptions = [];
-
 	useEffect(() => {
-		// Initialize selectedDimensions state when testObjectFields change
 		const newSelectedDimensions = {};
 		const newSelectedParameters = {};
 
@@ -90,9 +78,7 @@ const TestDetails = ({
 			test_condition_value: "",
 			unit_dimension: "",
 			object_dimension: [{ dimension: "", value: "", unit: "" }],
-			test_parameters: [
-				{ test_parameter: "", test_parameter_value: "", unit_dimension: "" },
-			],
+			test_parameters: [],
 		});
 	};
 
@@ -134,6 +120,9 @@ const TestDetails = ({
 
 	const addTestParameter = (e, objIndex) => {
 		e.preventDefault();
+
+		console.log(testParamQuery?.data?.length);
+		console.log("param added");
 		const newParameters = [
 			...(control._formValues.details[index].test_objects[objIndex]
 				.test_parameters || []),
@@ -184,7 +173,6 @@ const TestDetails = ({
 			`details[${index}].test_objects[${objIndex}].test_condition`,
 			e.value
 		);
-		setSelectedConditionId(e.value);
 		updateTest({ selectedConditionId: e.value });
 	};
 
@@ -224,6 +212,20 @@ const TestDetails = ({
 		);
 
 		updateTest({ selectedParameter: e.value });
+	};
+
+	const handleConditionValueChange = (e, objIndex, value, isOptionsEmpty) => {
+		if (isOptionsEmpty) {
+			setValue(
+				`details[${index}].test_objects[${objIndex}].test_condition_value`,
+				null
+			);
+		} else {
+			setValue(
+				`details[${index}].test_objects[${objIndex}].test_condition_value`,
+				e.target.value
+			);
+		}
 	};
 
 	return (
@@ -267,28 +269,7 @@ const TestDetails = ({
 						}}
 					/>
 				</div>
-				{/* <ButtonGroup>
-					<Button
-						icon="pi pi-plus"
-						label={"Add"}
-						onClick={add}
-						rounded
-						text
-						className="text-center"
-						aria-label="Add Test Object"
-					/>
-					<Button
-						icon="pi pi-times"
-						label={"Delete"}
-						onClick={remove}
-						rounded
-						text
-						severity="danger"
-					/>
-				</ButtonGroup> */}
 			</div>
-
-			{/* ... (keep the existing JSX for test selection) */}
 
 			{testObjectFields.map((testObject, objIndex) => (
 				<div key={testObject.id} className="flex flex-column gap-4 px-4 ">
@@ -364,45 +345,76 @@ const TestDetails = ({
 									<Controller
 										name={`details[${index}].test_objects[${objIndex}].test_condition`}
 										control={control}
-										render={({ field }) => (
-											<Dropdown
-												{...field}
-												options={testConditionQuery?.data || []}
-												loading={testConditionQuery?.isLoading}
-												onChange={(e) => handleConditionChange(e, objIndex)}
-												placeholder="Select Condition"
-												className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
-											/>
-										)}
+										render={({ field }) => {
+											const isOptionsEmpty =
+												testConditionQuery?.data?.length === 0;
+
+											return (
+												<Dropdown
+													{...field}
+													options={testConditionQuery?.data || []}
+													loading={testConditionQuery?.isLoading}
+													onChange={(e) => handleConditionChange(e, objIndex)}
+													placeholder={
+														isOptionsEmpty
+															? "No Conditions Available"
+															: "Select Condition"
+													}
+													value={isOptionsEmpty ? "" : field.value}
+													disabled={isOptionsEmpty}
+													className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
+												/>
+											);
+										}}
 									/>
+
 									<Controller
 										name={`details[${index}].test_objects[${objIndex}].test_condition_value`}
 										control={control}
-										render={({ field }) => (
-											<InputText
-												{...field}
-												type="number"
-												placeholder="Condition Value"
-												className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
-												// max={}
-											/>
-										)}
+										render={({ field }) => {
+											const isOptionsEmpty =
+												testConditionQuery?.data?.length === 0;
+
+											return (
+												<InputText
+													{...field}
+													type="number"
+													placeholder="Condition Value"
+													// value={isOptionsEmpty ? null : field.value}
+													onChange={(e) =>
+														handleConditionValueChange(
+															e,
+															objIndex,
+															field.value,
+															isOptionsEmpty
+														)
+													}
+													disabled={isOptionsEmpty}
+													className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
+												/>
+											);
+										}}
 									/>
+
 									<Controller
 										name={`details[${index}].test_objects[${objIndex}].unit_dimension`}
 										control={control}
-										render={({ field }) => (
-											<>
+										render={({ field }) => {
+											const isOptionsEmpty =
+												testConditionQuery?.data?.length === 0;
+
+											return (
 												<Dropdown
 													{...field}
 													options={unitDimensionsQuery?.data || []}
 													loading={unitDimensionsQuery?.isLoading}
 													placeholder="Unit"
+													value={isOptionsEmpty ? "" : field.value}
+													disabled={isOptionsEmpty}
 													className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
-													variant="filled"
 												/>
-											</>
-										)}
+											);
+										}}
 									/>
 								</div>
 							</div>
@@ -524,81 +536,93 @@ const TestDetails = ({
 								rounded
 								label="Add"
 								text
+								disabled={!selectedTestId || testParamQuery?.data?.length <= 0}
 							/>
 						</div>
-						{control._formValues.details[index]?.test_objects[
-							objIndex
-						].test_parameters.map((parameter, paramIndex) => (
-							<div key={paramIndex} className="flex align-items-center gap-2">
-								<Controller
-									name={`details[${index}].test_objects[${objIndex}].test_parameters[${paramIndex}].test_parameter`}
-									control={control}
-									render={({ field }) => (
-										<Dropdown
-											{...field}
-											onChange={(e) =>
-												handleParameterChange(e, objIndex, paramIndex)
-											}
-											options={testParamQuery?.data || []}
-											loading={testParamQuery?.isLoading}
-											optionLabel="label"
-											optionValue="id"
-											placeholder="Select Parameter"
-											className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
+						{selectedTestId ? (
+							testParamQuery?.data?.length > 0 ? (
+								control._formValues.details[index]?.test_objects[
+									objIndex
+								].test_parameters.map((parameter, paramIndex) => (
+									<div
+										key={paramIndex}
+										className="flex align-items-center gap-2"
+									>
+										<Controller
+											name={`details[${index}].test_objects[${objIndex}].test_parameters[${paramIndex}].test_parameter`}
+											control={control}
+											render={({ field }) => (
+												<Dropdown
+													{...field}
+													onChange={(e) =>
+														handleParameterChange(e, objIndex, paramIndex)
+													}
+													options={testParamQuery?.data || []}
+													loading={testParamQuery?.isLoading}
+													optionLabel="label"
+													optionValue="id"
+													placeholder="Select Parameter"
+													className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
+												/>
+											)}
 										/>
-									)}
-								/>
-								<Controller
-									name={`details[${index}].test_objects[${objIndex}].test_parameters[${paramIndex}].test_parameter_value`}
-									control={control}
-									render={({ field }) => (
-										<InputText
-											{...field}
-											type="number"
-											placeholder="Enter Value"
-											className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
+										<Controller
+											name={`details[${index}].test_objects[${objIndex}].test_parameters[${paramIndex}].test_parameter_value`}
+											control={control}
+											render={({ field }) => (
+												<InputText
+													{...field}
+													type="number"
+													placeholder="Enter Value"
+													className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
+												/>
+											)}
 										/>
-									)}
-								/>
-								<Controller
-									name={`details[${index}].test_objects[${objIndex}].test_parameters[${paramIndex}].unit_dimension`}
-									control={control}
-									render={({ field }) => {
-										const selectedParam = testParamQuery?.data?.find(
-											(param) =>
-												param.id ===
-												selectedParameters[`${objIndex}-${paramIndex}`]
-										);
+										<Controller
+											name={`details[${index}].test_objects[${objIndex}].test_parameters[${paramIndex}].unit_dimension`}
+											control={control}
+											render={({ field }) => {
+												const selectedParam = testParamQuery?.data?.find(
+													(param) =>
+														param.id ===
+														selectedParameters[`${objIndex}-${paramIndex}`]
+												);
 
-										const unitOptions = selectedParam
-											? selectedParam.units
-											: [];
-										return (
-											<Dropdown
-												{...field}
-												options={unitOptions || []}
-												placeholder="Select Unit"
-												className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
-											/>
-										);
-									}}
-								/>
-								<Button
-									icon="pi pi-times"
-									onClick={() => removeTestParameter(objIndex, paramIndex)}
-									rounded
-									text
-									severity="danger"
-								/>
-							</div>
-						))}
+												const unitOptions = selectedParam
+													? selectedParam.units
+													: [];
+												return (
+													<Dropdown
+														{...field}
+														options={unitOptions || []}
+														placeholder="Select Unit"
+														className="w-16rem flex-grow-1 max-w-18rem flex-shrink-1"
+													/>
+												);
+											}}
+										/>
+										<Button
+											icon="pi pi-times"
+											onClick={() => removeTestParameter(objIndex, paramIndex)}
+											rounded
+											text
+											severity="danger"
+										/>
+									</div>
+								))
+							) : (
+								<span className="text-black-alpha-40">
+									No Available Parameters for this test
+								</span>
+							)
+						) : (
+							<span className="text-black-alpha-40">Please select a test</span>
+						)}
 					</div>
 
 					<CustomDivider />
 				</div>
 			))}
-
-			<CustomDivider />
 		</div>
 	);
 };

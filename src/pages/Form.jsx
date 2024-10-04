@@ -89,13 +89,7 @@ const Form = () => {
 					test_condition_value: "",
 					unit_dimension: "",
 					object_dimension: [{ unit: "", dimension: "", value: "" }],
-					test_parameters: [
-						{
-							test_parameter: "",
-							test_parameter_value: "",
-							unit_dimension: "",
-						},
-					],
+					test_parameters: [],
 				},
 			],
 		});
