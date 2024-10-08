@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "https://3gc5tgdm-8000.inc1.devtunnels.ms/";
+const API_BASE_URL = "https://zl00v3nn-8000.inc1.devtunnels.ms";
 
 export const getBaseAlloys = async () => {
 	const response = await axios.get(`${API_BASE_URL}/d/alloys/base_alloy/`);

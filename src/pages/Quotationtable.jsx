@@ -13,7 +13,7 @@ const Quotationtable = () => {
     useEffect(() => {
         const getdata = async () => {
             try {
-                const response = await axios.get('https://farheenkhan1995.pythonanywhere.com/r/quotation/');
+                const response = await axios.get('https://zl00v3nn-8000.inc1.devtunnels.ms/r/quotation/');
                 setQuotes(response.data);
             } catch (error) {
                 console.log("error Occur getting Quotations", error.message);

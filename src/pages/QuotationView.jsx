@@ -10,7 +10,7 @@ const QuotationView = () => {
     useEffect(() => {
         const getDetails = async () => {
             try {
-                const response = await axios.get(`https://farheenkhan1995.pythonanywhere.com/r/quotation/${id}`);
+                const response = await axios.get(`https://zl00v3nn-8000.inc1.devtunnels.ms/r/quotation/${id}`);
                 setData(response.data);
                 console.log(response.data);
             } catch (error) {
