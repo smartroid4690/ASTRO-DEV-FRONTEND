@@ -1,6 +1,12 @@
 import axios from "axios";
 
-const API_BASE_URL = "https://zl00v3nn-8000.inc1.devtunnels.ms";
+const API_BASE_URL = "https://zl00v3nn-8000.inc1.devtunnels.ms/";
+
+const axiosInstance = axios.create({
+    baseURL: API_BASE_URL,
+});
+
+export default axiosInstance;
 
 export const getBaseAlloys = async () => {
 	const response = await axios.get(`${API_BASE_URL}/d/alloys/base_alloy/`);
@@ -55,6 +61,15 @@ export const getDimensions = async () => {
 };
 
 export const formSubmit = async (data) => {
-	const response = await axios.post(`${API_BASE_URL}/r/quotation/`, data);
+	const accessToken = localStorage.getItem('access_token');
+
+	const response = await axios.post(`${API_BASE_URL}/r/quotation/`,
+		data,
+		{
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+			},
+		}
+	);
 	return response.data;
 };

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Accordion, AccordionTab } from 'primereact/accordion';
-import axios from 'axios';
+import axiosInstance from '../services/quotationService';
 
 const QuotationView = () => {
     const { id } = useParams();
@@ -10,7 +10,12 @@ const QuotationView = () => {
     useEffect(() => {
         const getDetails = async () => {
             try {
-                const response = await axios.get(`https://zl00v3nn-8000.inc1.devtunnels.ms/r/quotation/${id}`);
+                const accessToken = localStorage.getItem('access_token');
+                const response = await axiosInstance.get(`/r/quotation/${id}`, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                });
                 setData(response.data);
                 console.log(response.data);
             } catch (error) {
@@ -90,9 +95,9 @@ const QuotationView = () => {
                                                     <td className='font-semibold px-3'
                                                         style={{
                                                             maxHeight: '20px',
-                                                            overflowY: 'scroll', 
+                                                            overflowY: 'scroll',
                                                             paddingRight: '10px',
-                                                            
+
                                                         }}>
                                                         {testObject.quotation_object_dimension.map((dimension, dimIndex) => (
                                                             <div key={dimIndex} className='flex gap-3'>

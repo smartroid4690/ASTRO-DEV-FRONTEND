@@ -1,11 +1,35 @@
 import React from "react";
 import "primeflex/primeflex.css";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "primereact/button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import axiosInstance from "../services/quotationService";
 
 const Header = ({ toggleBar }) => {
+	const refreshToken = localStorage.getItem('refresh_token');
+	const navigate = useNavigate();
+
+
+	const handleLogout = async () => {
+		try {
+			const refresh_token = localStorage.getItem("refresh_token");
+			if (refresh_token) {
+				const response = await axiosInstance.post('/auth/logout/', { refresh_token })
+				localStorage.clear();
+				navigate("/");
+				toast.success(response.data.detail);
+			} else {
+				toast.success("No refresh token found , log in again");
+				navigate("/");
+			}
+		} catch (error) {
+			console.error("Error", error);
+		}
+	};
+
 	return (
 		<>
 			<header>
@@ -42,7 +66,18 @@ const Header = ({ toggleBar }) => {
 							</Link>
 						</div>
 						<div>
-							<Button label="Log out" className="font-bold " />
+							{refreshToken ? (
+								<Button label="Log out" className="font-bold m-2" onClick={handleLogout} />
+							) : (
+								<>
+									<Link to="/login">
+										<Button label="Log in" className="font-bold m-2" />
+									</Link>
+									<Link to="/signUp">
+										<Button label="Sign Up" className="font-bold m-2" />
+									</Link>
+								</>
+							)}
 						</div>
 					</div>
 				</nav>

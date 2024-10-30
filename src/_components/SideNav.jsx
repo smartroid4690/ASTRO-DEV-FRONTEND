@@ -41,9 +41,6 @@ const SideNav = () => {
 					<li>
 						<About />
 					</li>
-					<li>
-						<Profile />
-					</li>
 				</ul>
 			</div>
 		</>
