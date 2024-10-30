@@ -7,7 +7,7 @@ const Profile = () => {
     <div>
       <span className='flex gap-2 align-items-center text-600'>
         <FontAwesomeIcon icon={faFileInvoiceDollar} />
-        <Link className='outline-none no-underline text-600 '>Profile</Link>
+        <Link  to="/profile" className='outline-none no-underline text-600 '>Profile</Link>
       </span>
     </div>
   )

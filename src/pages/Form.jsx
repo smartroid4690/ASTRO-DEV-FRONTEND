@@ -20,12 +20,18 @@ import {
 import { yupResolver } from "@hookform/resolvers/yup";
 import { validationSchema } from "../utils/QuotationFormValidation";
 import { classNames } from "primereact/utils";
+import { toast } from 'react-toastify';
+  import 'react-toastify/dist/ReactToastify.css';
+  import { useNavigate } from 'react-router-dom';
+  
+
 
 const LOCAL_STORAGE_KEY = "formData";
 const Form = () => {
 	const [selectedTestIndex, setSelectedTestIndex] = useState(0);
 	const [selectedBaseAlloy, setSelectedBaseAlloy] = useState(null);
 	const [useCustomAlloy, setUseCustomAlloy] = useState(false);
+	const navigate = useNavigate();
 
 	const {
 		control,
@@ -103,13 +109,24 @@ const Form = () => {
 		};
 
 		try {
-			console.log(submitData);
-			response = await formSubmit(submitData);
-			console.log(response);
-		} catch (error) {
+			const token = localStorage.getItem('access_token');
+			if(token){
+				let response = await formSubmit(submitData);
+				navigate("/default/quotetable");
+				toast.success("Form submitted successfully!");
+			} else{
+				navigate("/login");
+				toast.error("Please logged in for quotation form submission")
+			}
+		  } catch (error) {
 			console.log(error);
-		}
+			toast.error("Form submission failed!...");
+		  }
 	};
+
+	
+
+ 
 
 	return (
 		<div className="flex justify-content-between w-11 mx-auto gap-5">
