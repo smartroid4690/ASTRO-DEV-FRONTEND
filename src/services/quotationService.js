@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "https://gl8tx74f-8000.inc1.devtunnels.ms/";
+const API_BASE_URL = "https://farheenkhan.pythonanywhere.com/";
 
 const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
