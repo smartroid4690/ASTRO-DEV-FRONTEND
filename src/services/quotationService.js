@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "https://zl00v3nn-8000.inc1.devtunnels.ms/";
+const API_BASE_URL = "https://gl8tx74f-8000.inc1.devtunnels.ms/";
 
 const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
@@ -62,6 +62,7 @@ export const getDimensions = async () => {
 
 export const formSubmit = async (data) => {
 	const accessToken = localStorage.getItem('access_token');
+	console.log(data);
 
 	const response = await axios.post(`${API_BASE_URL}/r/quotation/`,
 		data,
@@ -73,3 +74,5 @@ export const formSubmit = async (data) => {
 	);
 	return response.data;
 };
+
+
